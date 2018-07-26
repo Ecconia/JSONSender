@@ -22,6 +22,11 @@ public class JSONPlugin extends JavaPlugin implements JSONPluginAPI
 		getServer().getServicesManager().register(JSONPluginAPI.class, this, this, ServicePriority.Normal);
 	}
 	
+	public static JSONPlugin getInstance()
+	{
+		return inst;
+	}
+
 	@Override
 	public boolean json(Player player, String json)
 	{
@@ -38,8 +43,16 @@ public class JSONPlugin extends JavaPlugin implements JSONPluginAPI
 		return false;
 	}
 	
-	public static JSONPlugin getInstance()
+	@Override
+	public boolean json(Player player, String json, String fallback)
 	{
-		return inst;
+		boolean worked = !json(player, json);
+		
+		if(!worked)
+		{
+			player.sendMessage(fallback);
+		}
+		
+		return worked;
 	}
 }
