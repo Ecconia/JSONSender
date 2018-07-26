@@ -188,6 +188,7 @@ public class ReflectSender
 	private static void handleException(ConsoleCommandSender console, Exception e, String doing)
 	{
 		console.sendMessage(JSONPlugin.prefix + ChatColor.RED + e.getClass().getSimpleName() + " was thrown while " + doing + ".");
+		console.sendMessage(JSONPlugin.prefix + ChatColor.RED + "Message: " + e.getMessage());
 	}
 	
 	public static boolean send(Player player, String json)
