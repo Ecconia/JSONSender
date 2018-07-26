@@ -1,5 +1,5 @@
-main: ${groupId}.${name}
-name: ${name}
+main: ${groupId}.${artifactId}
+name: ${artifactId}
 version: ${version}
 
 author: Ecconia
