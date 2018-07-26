@@ -8,7 +8,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import de.ecconia.bukkit.plugin.jsonsender.sender.ReflectSender;
 import de.ecconia.bukkit.plugin.jsonsender.sender.TellrawSender;
 
-public class JSONPlugin extends JavaPlugin
+public class JSONPlugin extends JavaPlugin implements JSONPluginAPI
 {
 	public static final String prefix = ChatColor.WHITE + "[" + ChatColor.GOLD + "JSONSender" + ChatColor.WHITE + "] ";
 	
@@ -19,24 +19,23 @@ public class JSONPlugin extends JavaPlugin
 	{
 		inst = this;
 		
-		getServer().getServicesManager().register(JSONPlugin.class, this, this, ServicePriority.Normal);
+		getServer().getServicesManager().register(JSONPluginAPI.class, this, this, ServicePriority.Normal);
 	}
 	
-	public static void json(Player player, String json)
+	@Override
+	public boolean json(Player player, String json)
 	{
 		if(ReflectSender.send(player, json))
 		{
-			return;
+			return true;
 		}
 		
 		if(TellrawSender.send(player, json))
 		{
-			return;
+			return true;
 		}
 		
-		//Console only eats this...
-		player.sendMessage(json);
-		return;
+		return false;
 	}
 	
 	public static JSONPlugin getInstance()
