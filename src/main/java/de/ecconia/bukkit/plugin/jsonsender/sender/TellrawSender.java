@@ -1,6 +1,7 @@
 package de.ecconia.bukkit.plugin.jsonsender.sender;
 
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
@@ -16,9 +17,12 @@ import de.ecconia.bukkit.plugin.jsonsender.JSONPlugin;
 
 public class TellrawSender
 {
+	//If setup has been made at some point
+	private static AtomicBoolean setup = new AtomicBoolean(true);
+	
 	private static Boolean tellrawExists;
 	
-	private static void setup(Player player)
+	private static void setup0(Player player)
 	{
 		//Test if command /tellraw exists:
 		try {
@@ -51,11 +55,22 @@ public class TellrawSender
 			//Well but at least /tellraw is installed.
 			tellrawExists = true;
 		}
+		
+		setup.set(false);
+	}
+	
+	private static synchronized void setup(Player player)
+	{
+		//Check if its still unloaded
+		if(setup.get())
+		{
+			setup0(player);
+		}
 	}
 	
 	public static boolean send(Player player, String json)
 	{
-		if(tellrawExists == null)
+		if(setup.get())
 		{
 			setup(player);
 		}

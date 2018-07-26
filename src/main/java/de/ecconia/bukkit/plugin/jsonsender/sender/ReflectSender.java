@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.ConsoleCommandSender;
@@ -14,7 +15,9 @@ import de.ecconia.bukkit.plugin.jsonsender.JSONPlugin;
 
 public class ReflectSender
 {
-	private static Boolean setup;
+	//If setup has been made at some point
+	private static AtomicBoolean setup = new AtomicBoolean(true);
+	
 	private static boolean sendMessage;
 	private static boolean sendPacket;
 	
@@ -30,7 +33,7 @@ public class ReflectSender
 	private static Method _SendPacket;
 	private static Constructor<?> _Packet;
 	
-	private static void setup(Player player)
+	private static void setup0(Player player)
 	{
 		String doing = "starting";
 		
@@ -82,10 +85,9 @@ public class ReflectSender
 		}
 		catch (Exception e)
 		{
-			setup = false;
-			
 			handleException(player.getServer().getConsoleSender(), e, doing);
 			player.getServer().getConsoleSender().sendMessage(JSONPlugin.prefix + ChatColor.RED + "Sending JSON via reflection is not possible, please report to the developer.");
+			setup.set(false);
 			return;
 		}
 		
@@ -166,7 +168,16 @@ public class ReflectSender
 			}
 		}
 		
-		setup = sendMessage || sendPacket;
+		setup.set(false);
+	}
+	
+	private static synchronized void setup(Player player)
+	{
+		//Check if its still unloaded
+		if(setup.get())
+		{
+			setup0(player);
+		}
 	}
 	
 	@SuppressWarnings("serial")
@@ -181,78 +192,68 @@ public class ReflectSender
 	
 	public static boolean send(Player player, String json)
 	{
-		if(setup == null)
+		if(setup.get())
 		{
 			setup(player);
 		}
 		
-		if(setup)
+		if(sendMessage)
 		{
-			if(sendMessage)
+			try
 			{
+				//USE(_HANDLE, player)
+				Object entityPlayer = _Handle.invoke(player);
+				
+				//USE(_SERIALIZE, null, json))
+				Object chatbase;
 				try
 				{
-					//USE(_HANDLE, player)
-					Object entityPlayer = _Handle.invoke(player);
-					
-					//USE(_SERIALIZE, null, json))
-					Object chatbase;
-					try
-					{
-						chatbase = _Serialize.invoke(null, json);
-					}
-					catch (InvocationTargetException e)
-					{
-						throw new JSONException("Invalid JSON format: " + e.getCause().getMessage());
-					}
-					
-					//USE(_SENDMESSAGE, obj-entityplayer, obj-message)
-					_SendMessage.invoke(entityPlayer, chatbase);
-					
-					return true;
+					chatbase = _Serialize.invoke(null, json);
 				}
-				catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e)
+				catch (InvocationTargetException e)
 				{
-					handleException(player.getServer().getConsoleSender(), e, "sending message via reflection \"sendMessage\" dumping this method." + (sendPacket ? ChatColor.YELLOW + " Falling back to other reflection method." : " Reflection is not possible anymore!"));
+					throw new JSONException("Invalid JSON format: " + e.getCause().getMessage());
 				}
 				
-				if(!sendPacket)
-				{
-					setup = false;
-					return false;
-				}
-				sendMessage = false;
+				//USE(_SENDMESSAGE, obj-entityplayer, obj-message)
+				_SendMessage.invoke(entityPlayer, chatbase);
+				
+				return true;
 			}
-			
-			if(sendPacket)
+			catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e)
 			{
+				handleException(player.getServer().getConsoleSender(), e, "sending message via reflection \"sendMessage\" dumping this method." + (sendPacket ? ChatColor.YELLOW + " Falling back to other reflection method." : " Reflection is not possible anymore!"));
+			}
+			sendMessage = false;
+		}
+		
+		if(sendPacket)
+		{
+			try
+			{
+				Object entityPlayer = _Handle.invoke(player);
+				Object connection = _Connection.get(entityPlayer);
+				
+				Object chatbase;
 				try
 				{
-					Object entityPlayer = _Handle.invoke(player);
-					Object connection = _Connection.get(entityPlayer);
-					
-					Object chatbase;
-					try
-					{
-						chatbase = _Serialize.invoke(null, json);
-					}
-					catch (InvocationTargetException e)
-					{
-						throw new JSONException("Invalid JSON format: " + e.getCause().getMessage());
-					}
-					
-					Object packet = _Packet.newInstance(chatbase);
-					_SendPacket.invoke(connection, packet);
-					
-					return true;
+					chatbase = _Serialize.invoke(null, json);
 				}
-				catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException e)
+				catch (InvocationTargetException e)
 				{
-					handleException(player.getServer().getConsoleSender(), e, "sending message via reflection \"sendPacket\" dumping this method. Reflection is not possible anymore!");
+					throw new JSONException("Invalid JSON format: " + e.getCause().getMessage());
 				}
 				
-				setup = false;
+				Object packet = _Packet.newInstance(chatbase);
+				_SendPacket.invoke(connection, packet);
+				
+				return true;
 			}
+			catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException e)
+			{
+				handleException(player.getServer().getConsoleSender(), e, "sending message via reflection \"sendPacket\" dumping this method. Reflection is not possible anymore!");
+			}
+			sendPacket = false;
 		}
 		
 		return false;
