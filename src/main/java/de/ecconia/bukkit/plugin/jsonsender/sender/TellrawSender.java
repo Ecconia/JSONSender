@@ -17,12 +17,12 @@ import de.ecconia.bukkit.plugin.jsonsender.JSONPlugin;
 
 public class TellrawSender
 {
-	//If setup has been made at some point
-	private static AtomicBoolean setup = new AtomicBoolean(true);
+	//If setup has been made
+	private AtomicBoolean setup = new AtomicBoolean(false);
 	
-	private static Boolean tellrawExists;
+	private Boolean tellrawExists;
 	
-	private static void setup0(Player player)
+	private void setup0(Player player)
 	{
 		//Test if command /tellraw exists:
 		try {
@@ -56,21 +56,21 @@ public class TellrawSender
 			tellrawExists = true;
 		}
 		
-		setup.set(false);
+		setup.set(true);
 	}
 	
-	private static synchronized void setup(Player player)
+	private synchronized void setup(Player player)
 	{
 		//Check if its still unloaded
-		if(setup.get())
+		if(!setup.get())
 		{
 			setup0(player);
 		}
 	}
 	
-	public static boolean send(Player player, String json)
+	public boolean send(Player player, String json)
 	{
-		if(setup.get())
+		if(!setup.get())
 		{
 			setup(player);
 		}

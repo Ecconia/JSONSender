@@ -14,12 +14,26 @@ public class JSONPlugin extends JavaPlugin implements JSONPluginAPI
 	
 	private static JSONPlugin inst;
 	
+	private ReflectSender reflect;
+	private TellrawSender tellraw;
+	
 	@Override
 	public void onEnable()
 	{
 		inst = this;
 		
+		reflect = new ReflectSender();
+		tellraw = new TellrawSender();
+		
 		getServer().getServicesManager().register(JSONPluginAPI.class, this, this, ServicePriority.Normal);
+	}
+	
+	@Override
+	public void onDisable()
+	{
+		inst = null;
+		tellraw = null;
+		reflect = null;
 	}
 	
 	public static JSONPlugin getInstance()
@@ -30,7 +44,7 @@ public class JSONPlugin extends JavaPlugin implements JSONPluginAPI
 	@Override
 	public boolean json(Player player, String json)
 	{
-		return ReflectSender.send(player, json) || TellrawSender.send(player, json);
+		return reflect.send(player, json) || tellraw.send(player, json);
 	}
 	
 	@Override

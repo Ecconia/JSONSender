@@ -15,25 +15,25 @@ import de.ecconia.bukkit.plugin.jsonsender.JSONPlugin;
 
 public class ReflectSender
 {
-	//If setup has been made at some point
-	private static AtomicBoolean setup = new AtomicBoolean(true);
+	//If setup has been made
+	private AtomicBoolean setup = new AtomicBoolean(false);
 	
-	private static boolean sendMessage;
-	private static boolean sendPacket;
+	private boolean sendMessage;
+	private boolean sendPacket;
 	
 	//Reflect both:
-	private static Method _Handle;
-	private static Method _Serialize;
+	private Method _Handle;
+	private Method _Serialize;
 	
 	//Reflect one:
-	private static Method _SendMessage;
+	private Method _SendMessage;
 	
 	//Refect two:
-	private static Field _Connection;
-	private static Method _SendPacket;
-	private static Constructor<?> _Packet;
+	private Field _Connection;
+	private Method _SendPacket;
+	private Constructor<?> _Packet;
 	
-	private static void setup0(Player player)
+	private void setup0(Player player)
 	{
 		String doing = "starting";
 		
@@ -87,7 +87,7 @@ public class ReflectSender
 		{
 			handleException(player.getServer().getConsoleSender(), e, doing);
 			player.getServer().getConsoleSender().sendMessage(JSONPlugin.prefix + ChatColor.RED + "Sending JSON via reflection is not possible, please report to the developer.");
-			setup.set(false);
+			setup.set(true);
 			return;
 		}
 		
@@ -168,13 +168,13 @@ public class ReflectSender
 			}
 		}
 		
-		setup.set(false);
+		setup.set(true);
 	}
 	
-	private static synchronized void setup(Player player)
+	private synchronized void setup(Player player)
 	{
 		//Check if its still unloaded
-		if(setup.get())
+		if(!setup.get())
 		{
 			setup0(player);
 		}
@@ -185,15 +185,15 @@ public class ReflectSender
 	{
 	}
 	
-	private static void handleException(ConsoleCommandSender console, Exception e, String doing)
+	private void handleException(ConsoleCommandSender console, Exception e, String doing)
 	{
 		console.sendMessage(JSONPlugin.prefix + ChatColor.RED + e.getClass().getSimpleName() + " was thrown while " + doing + ".");
 		console.sendMessage(JSONPlugin.prefix + ChatColor.RED + "Message: " + e.getMessage());
 	}
 	
-	public static boolean send(Player player, String json)
+	public boolean send(Player player, String json)
 	{
-		if(setup.get())
+		if(!setup.get())
 		{
 			setup(player);
 		}
