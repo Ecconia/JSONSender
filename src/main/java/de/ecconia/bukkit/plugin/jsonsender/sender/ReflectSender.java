@@ -46,7 +46,7 @@ public class ReflectSender
 			//Validation:
 			if(!craftPlayerClass.getSimpleName().equals("CraftPlayer"))
 			{
-				//Error
+				throw new WrongClassNameException();
 			}
 			
 			//METHOD(class-craftplayer, "getHandle")
@@ -63,7 +63,7 @@ public class ReflectSender
 			//Validation:
 			if(!entityPlayerClass.getSimpleName().equals("EntityPlayer"))
 			{
-				//Error
+				throw new WrongClassNameException();
 			}
 			
 			//GET_NMS_VERSION(class-entityplayer)
@@ -90,7 +90,7 @@ public class ReflectSender
 		}
 		
 		// REFLECTION ONE #################################################
-			
+		
 		try
 		{
 			//GETCLASS(nms + IChatBaseComponent)
@@ -109,7 +109,7 @@ public class ReflectSender
 			handleException(player.getServer().getConsoleSender(), e, doing);
 			player.getServer().getConsoleSender().sendMessage(JSONPlugin.prefix + ChatColor.YELLOW + "Sending JSON via \"sendMessage\" is not possible, trying fallback.");
 		}
-			
+		
 		// REFLECTION TWO #################################################
 		
 		try
@@ -167,6 +167,11 @@ public class ReflectSender
 		}
 		
 		setup = sendMessage || sendPacket;
+	}
+	
+	@SuppressWarnings("serial")
+	private static class WrongClassNameException extends Exception
+	{
 	}
 	
 	private static void handleException(ConsoleCommandSender console, Exception e, String doing)
