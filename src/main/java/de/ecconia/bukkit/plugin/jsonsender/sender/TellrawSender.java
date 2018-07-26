@@ -41,12 +41,15 @@ public class TellrawSender
 				public Server getServer() {return null;}
 				public String getName() {return null;}
 			}, "tellraw derps");
+			
+			if(!tellrawExists)
+			{
+				player.getServer().getConsoleSender().sendMessage(JSONPlugin.prefix + ChatColor.RED + "Sending JSON with tellraw is not possible, tellraw is disabled. No way to send JSON to client left.");
+			}
 		} catch (CommandException e) {
 			//lets assume it was mad, since the CommandSender was custom...
 			//Well but at least /tellraw is installed.
 			tellrawExists = true;
-			
-			player.getServer().getConsoleSender().sendMessage(JSONPlugin.prefix + ChatColor.RED + "Sending JSON with tellraw is not possible, tellraw is disabled. No way to send JSON to client left.");
 		}
 	}
 	
