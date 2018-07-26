@@ -30,23 +30,13 @@ public class JSONPlugin extends JavaPlugin implements JSONPluginAPI
 	@Override
 	public boolean json(Player player, String json)
 	{
-		if(ReflectSender.send(player, json))
-		{
-			return true;
-		}
-		
-		if(TellrawSender.send(player, json))
-		{
-			return true;
-		}
-		
-		return false;
+		return ReflectSender.send(player, json) || TellrawSender.send(player, json);
 	}
 	
 	@Override
 	public boolean json(Player player, String json, String fallback)
 	{
-		boolean worked = !json(player, json);
+		boolean worked = json(player, json);
 		
 		if(!worked)
 		{
